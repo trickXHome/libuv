@@ -359,14 +359,6 @@ uv_pid_t uv_os_getppid(void) {
 }
 
 
-int uv_current_pid(void) {
-  if (current_pid == 0) {
-    current_pid = GetCurrentProcessId();
-  }
-  return current_pid;
-}
-
-
 char** uv_setup_args(int argc, char** argv) {
   return argv;
 }
