@@ -127,8 +127,9 @@ extern UV_THREAD_LOCAL int uv__crt_assert_enabled;
 
 typedef struct {
   WSAPROTOCOL_INFOW socket_info;
-  int delayed_error;
-} uv__ipc_socket_info_ex;
+  uint32_t delayed_error;
+  uint32_t flags; /* Either zero or UV_HANDLE_CONNECTION. */
+} uv__ipc_socket_xfer_info_t;
 
 int uv_tcp_listen(uv_tcp_t* handle, int backlog, uv_connection_cb cb);
 int uv_tcp_accept(uv_tcp_t* server, uv_tcp_t* client);
@@ -150,11 +151,10 @@ void uv_process_tcp_connect_req(uv_loop_t* loop, uv_tcp_t* handle,
 void uv_tcp_close(uv_loop_t* loop, uv_tcp_t* tcp);
 void uv_tcp_endgame(uv_loop_t* loop, uv_tcp_t* handle);
 
-int uv_tcp_import(uv_tcp_t* tcp, uv__ipc_socket_info_ex* socket_info_ex,
-    int tcp_connection);
-
-int uv_tcp_duplicate_socket(uv_tcp_t* handle, int pid,
-    LPWSAPROTOCOL_INFOW protocol_info);
+int uv__tcp_xfer_export(uv_tcp_t* handle,
+                        int pid,
+                        uv__ipc_socket_xfer_info_t* xfer_info);
+int uv__tcp_xfer_import(uv_tcp_t* tcp, uv__ipc_socket_xfer_info_t* xfer_info);
 
 
 /*
@@ -178,11 +178,13 @@ int uv_pipe_listen(uv_pipe_t* handle, int backlog, uv_connection_cb cb);
 int uv_pipe_accept(uv_pipe_t* server, uv_stream_t* client);
 int uv_pipe_read_start(uv_pipe_t* handle, uv_alloc_cb alloc_cb,
     uv_read_cb read_cb);
-int uv_pipe_write(uv_loop_t* loop, uv_write_t* req, uv_pipe_t* handle,
-    const uv_buf_t bufs[], unsigned int nbufs, uv_write_cb cb);
-int uv_pipe_write2(uv_loop_t* loop, uv_write_t* req, uv_pipe_t* handle,
-    const uv_buf_t bufs[], unsigned int nbufs, uv_stream_t* send_handle,
-    uv_write_cb cb);
+int uv_pipe_write(uv_loop_t* loop,
+                  uv_write_t* req,
+                  uv_pipe_t* handle,
+                  const uv_buf_t bufs[],
+                  size_t nbufs,
+                  uv_stream_t* send_handle,
+                  uv_write_cb cb);
 void uv__pipe_pause_read(uv_pipe_t* handle);
 void uv__pipe_unpause_read(uv_pipe_t* handle);
 void uv__pipe_stop_read(uv_pipe_t* handle);
